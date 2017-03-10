@@ -23,7 +23,7 @@ FASTLED_USING_NAMESPACE
 CRGB leds[NUM_LEDS];
 
 #define BRIGHTNESS          255
-//#define FRAMES_PER_SECOND  120
+#define FRAMES_PER_SECOND  120
 
 
 // MOONBASE PARTS
@@ -43,9 +43,12 @@ int WING4_OUTER[8] = {60, 61, 62, 63, 64, 65, 66, 67};
 
 int WING5_INNER[8] = {69, 70, 71, 72, 73, 74, 75, 76};
 int WING5_OUTER[8] = {77, 78, 79, 80, 81, 82, 83, 84};
+boolean flipFlop = true;
 
 void setup() {
   delay(1000); // 3 second delay for recovery
+  Serial.begin(115200);
+  Serial.println("Serial connected!");
   // tell FastLED about the LED strip configuration
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   //FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
@@ -55,6 +58,7 @@ void setup() {
 
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i] =  CRGB::Black;
+    FastLED.show();
   }
 }
 
@@ -66,199 +70,151 @@ void setup() {
 //uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 //uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
+int serialIntInput = FRAMES_PER_SECOND;
+String inString = "";
+
 void loop() {
-  //  for (int r = 0; r < 255; r += 50 ) {
-  //    for (int g = 0; g < 255; g += 50) {
-  for (int h = 0; h < 255; h += 50) {
-    spiralMoonbaseIn(h, 255, 255, 10000);
-    //      }
-    //    }
+  int blendFactor = 51;
+  serialInput();
+  //  pinwheelMoonbase(200, 255, blendFactor, serialIntInput);
+  spiralInMoonbaseRainbow(serialIntInput);
+}
+
+void serialInput() {
+  while (Serial.available() > 0) {
+    int inChar = Serial.read();
+    if (isDigit(inChar)) {
+      // convert the incoming byte to a char
+      // and add it to the string:
+      inString += (char)inChar;
+    }
+    // if you get a newline, print the string,
+    // then the string's value:
+    if (inChar == '\n') {
+      Serial.print("Value:");
+      Serial.println(inString.toInt());
+      boolean isString =  true;
+      if (isValidNumber(inString)) {
+        serialIntInput = inString.toInt();
+      }
+      Serial.print("String: ");
+      Serial.println(inString);
+      // clear the string for new input:
+      inString = "";
+    }
   }
 }
 
-void spiralMoonbaseIn(int h, int s, int v, int delayTime) {
+boolean isValidNumber(String str) {
+  for (byte i = 0; i < str.length(); i++)
+  {
+    if (isDigit(str.charAt(i))) return true;
+  }
+  return false;
+}
 
+void pinwheelMoonbase(int s, int v, int blendFactor, int spinSpeed) {
+  for (int h = 0; h < 255; h += blendFactor) {
+    for (int i = 0; i < 8; i++) {
+      leds[WING5_OUTER[i]] = CHSV(h, s, v);
+
+      leds[WING4_OUTER[i]] = CHSV(h + blendFactor, s, v);
+
+      leds[WING3_OUTER[i]] = CHSV(h + blendFactor * 2, s, v);
+
+      leds[WING2_OUTER[i]] = CHSV(h + blendFactor * 3, s, v);
+
+      leds[WING1_OUTER[i]] = CHSV(h + blendFactor * 4, s, v);
+
+      leds[WING5_INNER[i]] = CHSV(h, s, v);
+
+      leds[WING4_INNER[i]] = CHSV(h + blendFactor, s, v);
+
+      leds[WING3_INNER[i]] = CHSV(h + blendFactor * 2, s, v);
+
+      leds[WING2_INNER[i]] = CHSV(h + blendFactor * 3, s, v);
+
+      leds[WING1_INNER[i]] = CHSV(h + blendFactor * 4, s, v);
+    }
+    leds[CENTER[4]] = CHSV(h, s, v);
+    leds[CENTER[3]] = CHSV(h + blendFactor, s, v);
+    leds[CENTER[2]] = CHSV(h + blendFactor * 2, s, v);
+    leds[CENTER[1]] = CHSV(h + blendFactor * 3, s, v);
+    leds[CENTER[0]] = CHSV(h + blendFactor * 4, s, v);
+    FastLED.show();
+    FastLED.delay(spinSpeed);
+  }
+}
+
+void spiralInMoonbaseRainbow(int spiralSpeed) {
+  for (int h; h < 255; h += spiralSpeed) {
+    spiralMoonbaseIn(h, 200, 255);
+  }
+}
+
+void spiralMoonbaseIn(int h, int s, int v) {
+  CHSV color( h, s, v);
   // Spiral in
   for (int i = 7; i > -1; i--) {
-    leds[WING5_OUTER[i]] = CHSV( h, s, v);
+    leds[WING5_OUTER[i]] = color;
+    leds[WING4_OUTER[i]] = color;
+    leds[WING3_OUTER[i]] = color;
+    leds[WING2_OUTER[i]] = color;
+    leds[WING1_OUTER[i]] = color;
     FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING4_OUTER[i]] = CHSV( h, s, v);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING3_OUTER[i]] = CHSV( h, s, v);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING2_OUTER[i]] = CHSV( h, s, v);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING1_OUTER[i]] = CHSV( h, s, v);
-    FastLED.show();
-    delayMicroseconds(delayTime);
+    FastLED.delay(1000 / FRAMES_PER_SECOND / 3);
   }
   for (int i = 7; i > -1; i--) {
-    leds[WING5_INNER[i]] = CHSV( h, s, v);
+    leds[WING5_INNER[i]] = color;
+    leds[WING4_INNER[i]] = color;
+    leds[WING3_INNER[i]] = color;
+    leds[WING2_INNER[i]] = color;
+    leds[WING1_INNER[i]] = color;
     FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING4_INNER[i]] = CHSV( h, s, v);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING3_INNER[i]] = CHSV( h, s, v);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING2_INNER[i]] = CHSV( h, s, v);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING1_INNER[i]] = CHSV( h, s, v);
-    FastLED.show();
-    delayMicroseconds(delayTime);
+    FastLED.delay(1000 / FRAMES_PER_SECOND / 3);
   }
 
   for (int i = 5; i > -1; i--) {
-    leds[CENTER[i]] = CHSV( h, s, v);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[CENTER[i]] = CHSV( h, s, v);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[CENTER[i]] = CHSV( h, s, v);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[CENTER[i]] = CHSV( h, s, v);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[CENTER[i]] = CHSV( h, s, v);
-    FastLED.show();
-    delayMicroseconds(delayTime);
+    leds[CENTER[i]] = color;
+    leds[CENTER[i]] = color;
+    leds[CENTER[i]] = color;
+    leds[CENTER[i]] = color;
+    leds[CENTER[i]] = color;
   }
+  FastLED.show();
 }
 
-void spiralMoonbaseOut(int r, int g, int b, int delayTime) {
+void spiralMoonbaseOut(int h, int s, int v) {
+  CHSV color( h, s, v);
+  // Spiral in
   for (int i = 0; i < 5; i++) {
-    leds[CENTER[i]] = CHSV(r, g, b);
+    leds[CENTER[i]] = color;
+    leds[CENTER[i]] = color;
+    leds[CENTER[i]] = color;
+    leds[CENTER[i]] = color;
+    leds[CENTER[i]] = color;
+  }
+  FastLED.show();
+
+  for (int i = 0; i < 8; i++) {
+    leds[WING5_INNER[i]] = color;
+    leds[WING4_INNER[i]] = color;
+    leds[WING3_INNER[i]] = color;
+    leds[WING2_INNER[i]] = color;
+    leds[WING1_INNER[i]] = color;
     FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[CENTER[i]] = CHSV(r, g, b);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[CENTER[i]] = CHSV(r, g, b);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[CENTER[i]] = CHSV(r, g, b);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[CENTER[i]] = CHSV(r, g, b);
-    delayMicroseconds(delayTime);
+    FastLED.delay(1000 / FRAMES_PER_SECOND / 3);
   }
 
   for (int i = 0; i < 8; i++) {
-    leds[WING5_INNER[i]] = CHSV(r, g, b);
+    leds[WING5_OUTER[i]] = color;
+    leds[WING4_OUTER[i]] = color;
+    leds[WING3_OUTER[i]] = color;
+    leds[WING2_OUTER[i]] = color;
+    leds[WING1_OUTER[i]] = color;
     FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING4_INNER[i]] = CHSV(r, g, b);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING3_INNER[i]] = CHSV(r, g, b);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING2_INNER[i]] = CHSV(r, g, b);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING1_INNER[i]] = CHSV(r, g, b);
-    FastLED.show();
-    delayMicroseconds(delayTime);
+    FastLED.delay(1000 / FRAMES_PER_SECOND / 3);
   }
-  for (int i = 0; i < 8; i++) {
-    leds[WING5_OUTER[i]] = CHSV(r, g, b);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING4_OUTER[i]] = CHSV(r, g, b);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING3_OUTER[i]] = CHSV(r, g, b);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING2_OUTER[i]] = CHSV(r, g, b);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-    leds[WING1_OUTER[i]] = CHSV(r, g, b);
-    FastLED.show();
-    delayMicroseconds(delayTime);
-  }
-}
 
-void pulseLEDArray(int sectionArray[], int arraySize, boolean scaleUp, int pulseFactor) {
-  for (int i = 0 ; i < arraySize; i++) {
-    if (!scaleUp) {
-      leds[sectionArray[i]].r -= pulseFactor;
-    }
-    else {
-      leds[sectionArray[i]].r += pulseFactor;
-    }
-  }
 }
-
-//
-//void nextPattern()
-//{
-//  // add one to the current pattern number, and wrap around at the end
-//  gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE( gPatterns);
-//}
-//
-//void rainbow()
-//{
-//  // FastLED's built-in rainbow generator
-//  fill_rainbow( leds, NUM_LEDS, gHue, 7);
-//}
-//
-//void rainbowWithGlitter()
-//{
-//  // built-in FastLED rainbow, plus some random sparkly glitter
-//  rainbow();
-//  addGlitter(80);
-//}
-//
-//void addGlitter( fract8 chanceOfGlitter)
-//{
-//  if( random8() < chanceOfGlitter) {
-//    leds[ random16(NUM_LEDS) ] += CHSV::White;
-//  }
-//}
-//
-//void confetti()
-//{
-//  // random colored speckles that blink in and fade smoothly
-//  fadeToBlackBy( leds, NUM_LEDS, 10);
-//  int pos = random16(NUM_LEDS);
-//  leds[pos] += CHSV( gHue + random8(64), 200, 255);
-//}
-//
-//void sinelon()
-//{
-//  // a colored dot sweeping back and forth, with fading trails
-//  fadeToBlackBy( leds, NUM_LEDS, 20);
-//  int pos = beatsin16(13,0,NUM_LEDS);
-//  leds[pos] += CHSV( gHue, 255, 192);
-//}
-//
-//void bpm()
-//{
-//  // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
-//  uint8_t BeatsPerMinute = 62;
-//  CHSVPalette16 palette = PartyColors_p;
-//  uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-//  for( int i = 0; i < NUM_LEDS; i++) { //9948
-//    leds[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
-//  }
-//}
-//
-//void juggle() {
-//  // eight colored dots, weaving in and out of sync with each other
-//  fadeToBlackBy( leds, NUM_LEDS, 20);
-//  byte dothue = 0;
-//  for( int i = 0; i < 8; i++) {
-//    leds[beatsin16(i+7,0,NUM_LEDS)] |= CHSV(dothue, 200, 255);
-//    dothue += 32;
-//  }
-//}
 
