@@ -19,12 +19,11 @@ FASTLED_USING_NAMESPACE
 //#define CLK_PIN   4
 #define LED_TYPE    WS2811
 #define COLOR_ORDER GRB
-#define NUM_LEDS    85
+#define NUM_LEDS    89
 CRGB leds[NUM_LEDS];
 
 #define BRIGHTNESS          255
 #define FRAMES_PER_SECOND  120
-
 
 // MOONBASE PARTS
 int CENTER[5] = {0, 17, 34, 51, 68};
@@ -43,6 +42,23 @@ int WING4_OUTER[8] = {60, 61, 62, 63, 64, 65, 66, 67};
 
 int WING5_INNER[8] = {69, 70, 71, 72, 73, 74, 75, 76};
 int WING5_OUTER[8] = {77, 78, 79, 80, 81, 82, 83, 84};
+
+
+
+
+// H20 PARTS HeightMap
+int H20_HEIGHT_MAP_ROW_1_SIZE = 7;
+int H20_HEIGHT_MAP_ROW_1[7] = {48, 49, 50, 51, 52, 53, 54};
+int H20_HEIGHT_MAP_ROW_2_SIZE = 1;
+int H20_HEIGHT_MAP_ROW_2[1] = {47};
+int H20_HEIGHT_MAP_ROW_3_SIZE = 1;
+int H20_HEIGHT_MAP_ROW_3[1] = {46};
+int H20_HEIGHT_MAP_ROW_4_SIZE = 1;
+int H20_HEIGHT_MAP_ROW_4[1] = {45};
+int H20_HEIGHT_MAP_ROW_5_SIZE = 1;
+int H20_HEIGHT_MAP_ROW_5[1] = {44};
+int H20_HEIGHT_MAP_ROW_6_SIZE = 7;
+int H20_HEIGHT_MAP_ROW_6[7] = {12, 32, 43, 75, 74, 73, 72};
 
 
 String inputString = "";         // a string to hold incoming data
@@ -81,20 +97,35 @@ int serialInputPatternMode = 1;
 char serialFlag = '!';
 
 void loop() {
-  // print the string when a newline arrives:
-  //  int blendFactor = 51;
-  switch (serialInputPatternMode) {
-    case 1:
-      spiralInMoonbaseRainbow();
-      break;
-    case 2:
-      spiralOutMoonbaseRainbow();
-      break;
-    default: 
-      spiralInMoonbaseRainbow();
-    break;
+
+  for (int i = 0; i < H20_HEIGHT_MAP_ROW_1_SIZE; i++) {
+    leds[H20_HEIGHT_MAP_ROW_1[i]] = CHSV(255, 255, 255);
   }
+
+  for (int i = 0; i < H20_HEIGHT_MAP_ROW_2_SIZE; i++) {
+    leds[H20_HEIGHT_MAP_ROW_2[i]] = CHSV(255, 255, 255);
+  }
+
+  for (int i = 0; i < H20_HEIGHT_MAP_ROW_3_SIZE; i++) {
+    leds[H20_HEIGHT_MAP_ROW_3[i]] = CHSV(255, 255, 255);
+  }
+
+  for (int i = 0; i < H20_HEIGHT_MAP_ROW_4_SIZE; i++) {
+    leds[H20_HEIGHT_MAP_ROW_4[i]] = CHSV(255, 255, 255);
+  }
+
+  for (int i = 0; i < H20_HEIGHT_MAP_ROW_5_SIZE; i++) {
+    leds[H20_HEIGHT_MAP_ROW_5[i]] = CHSV(255, 255, 255);
+  }
+
+  for (int i = 0; i < H20_HEIGHT_MAP_ROW_6_SIZE; i++) {
+    leds[H20_HEIGHT_MAP_ROW_6[i]] = CHSV(255, 255, 255);
+  }
+
+  FastLED.show();
 }
+
+
 /*
   SerialEvent occurs whenever a new data comes in the
   hardware serial RX.  This routine is run between each
@@ -204,7 +235,7 @@ void pinwheelMoonbase(int s, int v, int blendFactor, int spinSpeed) {
   }
 }
 
-void spiralInMoonbaseRainbow() {
+void spiralInRainbow() {
   for (int h = pinwheelOffset; h < 255; h += serialInputColorJump) {
     spiralMoonbaseIn(h, serialInputSaturation, serialInputBrightness, serialInputSpiralSpeed);
     pinwheelOffset =  h + serialInputColorJump;
@@ -212,7 +243,7 @@ void spiralInMoonbaseRainbow() {
   pinwheelOffset = pinwheelOffset - 255;
 }
 
-void spiralOutMoonbaseRainbow() {
+void spiralOutRainbow() {
   for (int h = pinwheelOffset; h < 255; h += serialInputColorJump) {
     spiralMoonbaseOut(h, serialInputSaturation, serialInputBrightness, serialInputSpiralSpeed);
     pinwheelOffset =  h + serialInputColorJump;
@@ -285,4 +316,5 @@ void spiralMoonbaseOut(int h, int s, int v, int delayTime) {
   }
 
 }
+
 

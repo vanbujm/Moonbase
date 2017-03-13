@@ -85,13 +85,13 @@ void loop() {
   //  int blendFactor = 51;
   switch (serialInputPatternMode) {
     case 1:
-      spiralInMoonbaseRainbow();
+      spiralInRainbow();
       break;
     case 2:
-      spiralOutMoonbaseRainbow();
+      spiralOutRainbow();
       break;
     default: 
-      spiralInMoonbaseRainbow();
+      spiralInRainbow();
     break;
   }
 }
@@ -204,7 +204,7 @@ void pinwheelMoonbase(int s, int v, int blendFactor, int spinSpeed) {
   }
 }
 
-void spiralInMoonbaseRainbow() {
+void spiralInRainbow() {
   for (int h = pinwheelOffset; h < 255; h += serialInputColorJump) {
     spiralMoonbaseIn(h, serialInputSaturation, serialInputBrightness, serialInputSpiralSpeed);
     pinwheelOffset =  h + serialInputColorJump;
@@ -212,7 +212,7 @@ void spiralInMoonbaseRainbow() {
   pinwheelOffset = pinwheelOffset - 255;
 }
 
-void spiralOutMoonbaseRainbow() {
+void spiralOutRainbow() {
   for (int h = pinwheelOffset; h < 255; h += serialInputColorJump) {
     spiralMoonbaseOut(h, serialInputSaturation, serialInputBrightness, serialInputSpiralSpeed);
     pinwheelOffset =  h + serialInputColorJump;
